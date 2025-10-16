@@ -16,29 +16,29 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       title: "Total Invoices",
       value: stats.totalInvoices,
       icon: FileText,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-100 dark:bg-blue-900/30",
     },
     {
       title: "Pending Review",
       value: stats.pendingInvoices,
       icon: AlertCircle,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
+      color: "text-orange-600 dark:text-orange-400",
+      bgColor: "bg-orange-100 dark:bg-orange-900/30",
     },
     {
       title: "Active Conversations",
       value: stats.activeConversations,
       icon: MessageSquare,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: "text-green-600 dark:text-green-400",
+      bgColor: "bg-green-100 dark:bg-green-900/30",
     },
     {
       title: "Today's Activity",
       value: stats.todayActivity,
       icon: Activity,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-100 dark:bg-purple-900/30",
     },
   ]
 
@@ -49,7 +49,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
         return (
           <Card key={card.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {card.title}
               </CardTitle>
               <div className={`p-2 rounded-lg ${card.bgColor}`}>
@@ -57,7 +57,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{card.value}</div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{card.value}</div>
             </CardContent>
           </Card>
         )

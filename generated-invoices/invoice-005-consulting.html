@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice EBC-2024-567</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            padding: 40px;
+            color: #333;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #ddd;
+            padding: 40px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2563eb;
+        }
+        
+        .vendor-info h1 {
+            color: #2563eb;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .vendor-info p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .invoice-details {
+            text-align: right;
+        }
+        
+        .invoice-details h2 {
+            color: #2563eb;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .invoice-details p {
+            color: #666;
+            line-height: 1.8;
+        }
+        
+        .invoice-details strong {
+            color: #333;
+        }
+        
+        .bill-to {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9fafb;
+            border-left: 4px solid #2563eb;
+        }
+        
+        .bill-to h3 {
+            color: #2563eb;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .bill-to p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        thead {
+            background: #2563eb;
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        th.right, td.right {
+            text-align: right;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        td {
+            padding: 15px;
+            color: #666;
+        }
+        
+        .totals {
+            margin-left: auto;
+            width: 350px;
+            margin-bottom: 30px;
+        }
+        
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .totals-row.grand-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2563eb;
+            border-top: 3px solid #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding: 15px 0;
+            margin-top: 10px;
+        }
+        
+        .notes {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .notes h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .notes p {
+            color: #78350f;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <div class="vendor-info">
+                <h1>Elite Business Consultants</h1>
+                <p>77 Des Voeux Road Central<br>
+                Hong Kong<br>
+                Phone: +852 2456 7890<br>
+                Email: invoicing@elitebiz.hk</p>
+            </div>
+            <div class="invoice-details">
+                <h2>INVOICE</h2>
+                <p>
+                    <strong>Invoice #:</strong> EBC-2024-567<br>
+                    <strong>Date:</strong> 25 October 2024<br>
+                    <strong>Due Date:</strong> 24 November 2024
+                </p>
+            </div>
+        </div>
+        
+        <div class="bill-to">
+            <h3>BILL TO:</h3>
+            <p>
+                <strong>Your Company Ltd.</strong><br>
+                456 Queen's Road Central<br>
+                Hong Kong<br>
+                Phone: +852 2987 6543
+            </p>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="right">Quantity</th>
+                    <th class="right">Unit Price</th>
+                    <th class="right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>Strategic Planning Workshop (2 days)</td>
+                    <td class="right">1</td>
+                    <td class="right">HKD 95000.00</td>
+                    <td class="right">HKD 95000.00</td>
+                </tr>
+                
+                <tr>
+                    <td>Market Research Analysis</td>
+                    <td class="right">1</td>
+                    <td class="right">HKD 68500.00</td>
+                    <td class="right">HKD 68500.00</td>
+                </tr>
+                
+                <tr>
+                    <td>Financial Modeling Service</td>
+                    <td class="right">1</td>
+                    <td class="right">HKD 42000.00</td>
+                    <td class="right">HKD 42000.00</td>
+                </tr>
+                
+                <tr>
+                    <td>Executive Coaching Sessions (8 hours)</td>
+                    <td class="right">8</td>
+                    <td class="right">HKD 3850.00</td>
+                    <td class="right">HKD 30800.00</td>
+                </tr>
+                
+                <tr>
+                    <td>Business Process Review</td>
+                    <td class="right">1</td>
+                    <td class="right">HKD 21720.00</td>
+                    <td class="right">HKD 21720.00</td>
+                </tr>
+                
+            </tbody>
+        </table>
+        
+        <div class="totals">
+            <div class="totals-row">
+                <span>Subtotal:</span>
+                <span>HKD 258020.00</span>
+            </div>
+            <div class="totals-row">
+                <span>Tax (0%):</span>
+                <span>HKD 0.00</span>
+            </div>
+            <div class="totals-row grand-total">
+                <span>TOTAL:</span>
+                <span>HKD 258020.00</span>
+            </div>
+        </div>
+        
+        <div class="notes">
+            <h4>Payment Notes</h4>
+            <p>Project completion: October 2024. Payment terms: 30 days from invoice date.</p>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for your business!</p>
+        </div>
+    </div>
+</body>
+</html>

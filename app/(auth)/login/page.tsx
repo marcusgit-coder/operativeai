@@ -40,18 +40,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-950 p-4">
+      <Card className="w-full max-w-md dark:bg-gray-900 dark:border-gray-800">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center">OperativeAI</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-3xl font-bold text-center dark:text-gray-100">OperativeAI</CardTitle>
+          <CardDescription className="text-center dark:text-gray-400">
             Sign in to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="email" className="text-sm font-medium dark:text-gray-300">
                 Email
               </label>
               <Input
@@ -64,7 +64,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label htmlFor="password" className="text-sm font-medium dark:text-gray-300">
                 Password
               </label>
               <Input
@@ -77,7 +77,7 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+              <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 dark:border dark:border-red-800 p-3 rounded-md">
                 {error}
               </div>
             )}
@@ -85,7 +85,7 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-gray-600">
+          <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
             <p>Demo: admin@demo.com / password123</p>
           </div>
         </CardContent>

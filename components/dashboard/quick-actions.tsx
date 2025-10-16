@@ -40,14 +40,14 @@ export default function QuickActions() {
             <Link key={action.title} href={action.href}>
               <Button
                 variant="outline"
-                className="w-full justify-start h-auto py-4 hover:bg-gray-50"
+                className="w-full justify-start h-auto py-4 hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
               >
                 <div className={`p-2 rounded-lg ${action.color} mr-4`}>
                   <Icon className="h-5 w-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold">{action.title}</div>
-                  <div className="text-sm text-gray-500">{action.description}</div>
+                  <div className="font-semibold dark:text-gray-100">{action.title}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{action.description}</div>
                 </div>
               </Button>
             </Link>
