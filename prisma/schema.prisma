@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// User Management & Authentication
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  role          String    @default("ADMIN")
+  
+  accounts      Account[]
+  sessions      Session[]
+  organization  Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Organization {
+  id            String    @id @default(cuid())
+  name          String
+  industry      String?
+  employeeCount String?
+  
+  users         User[]
+  invoices      Invoice[]
+  conversations Conversation[]
+  knowledgeBase KnowledgeBase[]
+  settings      OrganizationSettings?
+  
+  onboardingCompleted Boolean @default(false)
+  onboardingStep      Int     @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model OrganizationSettings {
+  id             String   @id @default(cuid())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String   @unique
+  
+  // Email integration
+  emailIntegrated     Boolean @default(false)
+  emailProvider       String?
+  emailAddress        String?
+  
+  // Business rules
+  autoApproveThreshold Float?
+  escalationKeywords   String?
+  
+  // Notifications
+  notifyOnEscalation  Boolean @default(true)
+  dailyDigest         Boolean @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Invoice Processing
+model Invoice {
+  id                String    @id @default(cuid())
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId    String
+  
+  fileName          String
+  fileUrl           String
+  fileSize          Int
+  fileType          String
+  
+  // Extracted data
+  vendorName        String?
+  invoiceNumber     String?
+  invoiceDate       DateTime?
+  dueDate           DateTime?
+  totalAmount       Float?
+  currency          String?   @default("HKD")
+  
+  lineItems         String?
+  
+  // AI processing metadata
+  status            String @default("PENDING")
+  confidenceScore   Float?
+  needsReview       Boolean   @default(false)
+  reviewNotes       String?
+  
+  processedAt       DateTime?
+  reviewedAt        DateTime?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+// Support Agent
+model Conversation {
+  id                String    @id @default(cuid())
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId    String
+  
+  channel           String
+  customerEmail     String
+  customerName      String?
+  subject           String?
+  
+  status            String @default("ACTIVE")
+  assignedToHuman   Boolean   @default(false)
+  
+  messages          Message[]
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  closedAt          DateTime?
+}
+
+model Message {
+  id                String    @id @default(cuid())
+  conversation      Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId    String
+  
+  content           String
+  sender            String
+  
+  // AI metadata
+  isAiGenerated     Boolean   @default(false)
+  confidenceScore   Float?
+  needsReview       Boolean   @default(false)
+  
+  sentAt            DateTime  @default(now())
+}
+
+// Knowledge Base
+model KnowledgeBase {
+  id                String    @id @default(cuid())
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId    String
+  
+  title             String
+  content           String
+  category          String?
+  
+  // For future vector search
+  embedding         String?
+  
+  isActive          Boolean   @default(true)
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+// Activity Logs
+model ActivityLog {
+  id                String    @id @default(cuid())
+  userId            String?
+  organizationId    String?
+  
+  action            String
+  resourceType      String
+  resourceId        String?
+  metadata          String?
+  
+  createdAt         DateTime  @default(now())
+}
+
+
+// NextAuth Required Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
