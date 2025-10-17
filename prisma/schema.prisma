@@ -37,6 +37,7 @@ model Organization {
   conversations Conversation[]
   knowledgeBase KnowledgeBase[]
   settings      OrganizationSettings?
+  integrations  ChannelIntegration[]
   
   onboardingCompleted Boolean @default(false)
   onboardingStep      Int     @default(0)
@@ -108,18 +109,28 @@ model Conversation {
   organizationId    String
   
   channel           String
-  customerEmail     String
+  externalId        String?   // Email thread ID, WhatsApp chat ID, etc.
+  customerEmail     String?
+  customerPhone     String?
   customerName      String?
   subject           String?
   
   status            String @default("ACTIVE")
+  priority          String @default("MEDIUM")
   assignedToHuman   Boolean   @default(false)
+  
+  lastMessageAt     DateTime  @default(now())
+  unreadCount       Int       @default(0)
   
   messages          Message[]
   
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   closedAt          DateTime?
+  
+  @@index([organizationId, status])
+  @@index([customerEmail])
+  @@index([externalId])
 }
 
 model Message {
@@ -129,13 +140,57 @@ model Message {
   
   content           String
   sender            String
+  senderEmail       String?
+  
+  // Message metadata
+  direction         String    @default("INBOUND") // INBOUND or OUTBOUND
+  channel           String    @default("EMAIL")
+  externalId        String?   // External message ID from email provider
+  
+  // Attachments
+  attachments       String?   // JSON array of attachment URLs
   
   // AI metadata
   isAiGenerated     Boolean   @default(false)
   confidenceScore   Float?
   needsReview       Boolean   @default(false)
   
+  // Status tracking
+  status            String    @default("SENT") // PENDING, SENT, DELIVERED, READ, FAILED
+  deliveredAt       DateTime?
+  readAt            DateTime?
+  failedReason      String?
+  
   sentAt            DateTime  @default(now())
+  
+  @@index([conversationId, sentAt])
+  @@index([externalId])
+}
+
+// Channel Integrations
+model ChannelIntegration {
+  id              String    @id @default(cuid())
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId  String
+  
+  channel         String    // EMAIL, WHATSAPP, SMS, etc.
+  isEnabled       Boolean   @default(false)
+  
+  // Encrypted credentials stored as JSON
+  credentials     String?
+  
+  // Configuration
+  config          String?   // JSON for channel-specific settings
+  
+  // Status
+  lastSyncAt      DateTime?
+  syncStatus      String    @default("ACTIVE") // ACTIVE, PAUSED, ERROR
+  errorMessage    String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([organizationId, channel])
 }
 
 // Knowledge Base

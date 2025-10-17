@@ -5,7 +5,8 @@ import { useSession } from "next-auth/react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Settings as SettingsIcon, Bell, Mail, DollarSign, AlertTriangle } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Mail, DollarSign, AlertTriangle, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -106,62 +107,24 @@ export default function SettingsPage() {
       <div className="grid gap-6 max-w-4xl">
         {/* Email Integration */}
         <Card className="p-6 dark:bg-gray-900 dark:border-gray-800">
-          <div className="flex items-center gap-3 mb-6">
-            <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-xl font-semibold dark:text-gray-100">Email Integration</h2>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-xl font-semibold dark:text-gray-100">Email Integration</h2>
+            </div>
+            <Link href="/settings/integrations/email">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                Configure
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="emailIntegrated"
-                checked={settings.emailIntegrated}
-                onChange={(e) =>
-                  setSettings({ ...settings, emailIntegrated: e.target.checked })
-                }
-                className="w-4 h-4 text-blue-600 rounded"
-              />
-              <label htmlFor="emailIntegrated" className="font-medium dark:text-gray-200">
-                Enable Email Integration
-              </label>
-            </div>
-
-            {settings.emailIntegrated && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Email Provider
-                  </label>
-                  <select
-                    value={settings.emailProvider}
-                    onChange={(e) =>
-                      setSettings({ ...settings, emailProvider: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 rounded-md focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select provider</option>
-                    <option value="gmail">Gmail</option>
-                    <option value="outlook">Outlook</option>
-                    <option value="custom">Custom SMTP</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Email Address
-                  </label>
-                  <Input
-                    type="email"
-                    value={settings.emailAddress}
-                    onChange={(e) =>
-                      setSettings({ ...settings, emailAddress: e.target.value })
-                    }
-                    placeholder="support@company.com"
-                  />
-                </div>
-              </>
-            )}
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Connect your email account to send and receive support messages via email. 
+              Configure SMTP settings to enable two-way email communication with customers.
+            </p>
           </div>
         </Card>
 
