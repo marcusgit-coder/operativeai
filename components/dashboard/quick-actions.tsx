@@ -29,11 +29,11 @@ export default function QuickActions() {
   ]
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+    <Card className="h-[400px] flex flex-col dark:bg-gray-900 dark:border-gray-800">
+      <CardHeader className="flex-shrink-0">
+        <CardTitle className="dark:text-gray-100">Quick Actions</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 flex-1">
         {actions.map((action) => {
           const Icon = action.icon
           return (

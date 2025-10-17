@@ -70,24 +70,24 @@ export default async function RecentActivity({ organizationId }: RecentActivityP
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+    <Card className="h-[400px] flex flex-col dark:bg-gray-900 dark:border-gray-800">
+      <CardHeader className="flex-shrink-0">
+        <CardTitle className="dark:text-gray-100">Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 overflow-hidden p-6 pt-0">
         {activities.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
             No activity yet. Start by uploading an invoice!
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="h-full overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
             {activities.map((activity) => {
               const activityLink = getActivityLink(activity)
               const activityContent = (
                 <>
-                  <span className="text-2xl">{getActivityIcon(activity.action)}</span>
+                  <span className="text-2xl flex-shrink-0">{getActivityIcon(activity.action)}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-900 dark:text-gray-100 font-medium">
+                    <p className="text-gray-900 dark:text-gray-100 font-medium truncate">
                       {getActivityMessage(activity)}
                     </p>
                     <p className="text-gray-500 dark:text-gray-400 text-xs">
