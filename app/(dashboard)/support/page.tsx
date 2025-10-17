@@ -9,6 +9,7 @@ import Link from "next/link"
 import TicketList from "@/components/support/ticket-list"
 import ArchivedTickets from "@/components/support/archived-tickets"
 import TicketTabs from "@/components/support/ticket-tabs"
+import { SupportTicketsClient } from "@/components/support/support-tickets-client"
 
 async function getSupportTickets(organizationId: string) {
   const conversations = await db.conversation.findMany({
@@ -180,8 +181,25 @@ export default async function SupportPage() {
         </Card>
       </div>
 
-      {/* Ticket List with Tabs */}
-      <TicketTabs allTickets={tickets} archivedTickets={archivedTickets} />
+      {/* Filtered Tickets with Advanced Filters */}
+      <Card className="dark:bg-gray-900 dark:border-gray-800">
+        <CardContent className="pt-6">
+          <SupportTicketsClient />
+        </CardContent>
+      </Card>
+
+      {/* Archived Tickets Section */}
+      <Card className="dark:bg-gray-900 dark:border-gray-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 dark:text-gray-100">
+            <Archive className="h-5 w-5" />
+            Archived Tickets
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ArchivedTickets tickets={archivedTickets} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

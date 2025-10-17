@@ -119,22 +119,42 @@ model Conversation {
   customerName      String?
   subject           String?
   
-  status            String @default("ACTIVE")
-  priority          String @default("MEDIUM")
+  // Status & Priority (Enhanced for filtering)
+  status            String @default("ACTIVE") // ACTIVE, IN_PROGRESS, WAITING_CUSTOMER, RESOLVED, CLOSED
+  priority          String @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT, CRITICAL
   assignedToHuman   Boolean   @default(false)
+  assignedToUserId  String?   // ID of assigned user for better filtering
   
+  // Tags & Categories (NEW)
+  tags              String?   // Comma-separated tags: "billing,refund,vip"
+  category          String?   // Category: "Technical", "Billing", "General", "Sales"
+  
+  // Date tracking (Enhanced)
   lastMessageAt     DateTime  @default(now())
   unreadCount       Int       @default(0)
-  
-  messages          Message[]
-  
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   closedAt          DateTime?
+  resolvedAt        DateTime? // When ticket was resolved
+  firstResponseAt   DateTime? // Time to first response (SLA tracking)
+  dueDate           DateTime? // SLA deadline
+  
+  // Additional metadata
+  isArchived        Boolean   @default(false)
+  archivedAt        DateTime?
+  source            String    @default("MANUAL") // EMAIL, MANUAL, CHAT, API, PHONE
+  
+  messages          Message[]
   
   @@index([organizationId, status])
+  @@index([organizationId, priority])
+  @@index([organizationId, category])
+  @@index([organizationId, isArchived])
   @@index([customerEmail])
   @@index([externalId])
+  @@index([assignedToUserId])
+  @@index([createdAt])
+  @@index([dueDate])
 }
 
 model Message {
