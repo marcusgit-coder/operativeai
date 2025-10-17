@@ -68,120 +68,130 @@ export class TicketEmailReceiver {
   }
 
   /**
-   * Fetch emails only for active tickets
-   * This is much more efficient than parsing every email
+   * Fetch ALL emails sent to the support email address
+   * Every email creates or updates a ticket
    */
   async fetchTicketReplies(): Promise<number> {
     let processedCount = 0
 
     try {
+      // Fetch ALL emails sent to the support email address
+      const allEmails = await this.fetchAllIncomingEmails()
+      
+      if (allEmails.length === 0) {
+        console.log('📭 No new emails found')
+        return 0
+      }
+
+      console.log(`📨 Found ${allEmails.length} emails sent to ${this.config.username}`)
+
       // Get all active email conversations for this organization
       const activeTickets = await db.conversation.findMany({
         where: {
           organizationId: this.organizationId,
           channel: "EMAIL",
           status: "ACTIVE",
-          NOT: {
-            customerEmail: null
-          }
         },
         select: {
           id: true,
           customerEmail: true,
           subject: true,
           updatedAt: true,
+          messages: {
+            select: {
+              externalId: true
+            }
+          }
         },
         orderBy: {
-          updatedAt: "desc" // Most recent first
+          updatedAt: "desc"
         },
       })
 
-      console.log(`🎫 Found ${activeTickets.length} active email tickets`)
+      console.log(`🎫 Found ${activeTickets.length} active email tickets for matching`)
 
-      if (activeTickets.length === 0) {
-        return 0
-      }
-
-      // Group tickets by customer email to avoid fetching same inbox multiple times
-      const ticketsByCustomer = new Map<string, typeof activeTickets>()
-      
-      for (const ticket of activeTickets) {
-        if (!ticket.customerEmail) continue
+      // Process each email
+      for (const email of allEmails) {
+        console.log(`📧 Processing email from: ${email.from.address} | Subject: "${email.subject}"`)
         
-        const existing = ticketsByCustomer.get(ticket.customerEmail) || []
-        ticketsByCustomer.set(ticket.customerEmail, [...existing, ticket])
-      }
-
-      console.log(`👥 Checking ${ticketsByCustomer.size} unique customers`)
-
-      // For each customer, fetch their emails once and match to their tickets
-      for (const [customerEmail, customerTickets] of Array.from(ticketsByCustomer.entries())) {
-        const replies = await this.fetchEmailsFromSender(customerEmail)
+        const senderEmail = email.from.address.toLowerCase()
         
-        if (replies.length === 0) continue
-
-        console.log(`📧 Found ${replies.length} emails from ${customerEmail}, matching to ${customerTickets.length} ticket(s)`)
+        // Try to find matching ticket
+        let matchedTicket = null
         
-        for (const email of replies) {
-          console.log(`📧 Processing email with subject: "${email.subject}"`)
-          
-          // Try to find the best matching ticket for this email
-          let matchedTicket: typeof customerTickets[0] | null = null
-          
-          // First, try to match by subject
-          for (const ticket of customerTickets) {
-            if (ticket.subject && email.subject) {
-              const normalizedEmailSubject = this.normalizeSubject(email.subject)
-              const normalizedTicketSubject = this.normalizeSubject(ticket.subject)
-              
-              console.log(`   Comparing: email="${normalizedEmailSubject}" vs ticket="${normalizedTicketSubject}" (${ticket.id.slice(0,8)})`)
-              
-              if (normalizedEmailSubject === normalizedTicketSubject) {
-                console.log(`✅ Matched email to ticket ${ticket.id.slice(0,8)} by subject: "${normalizedTicketSubject}"`)
+        // Strategy 1: Match by In-Reply-To or References headers (most reliable)
+        const hasReferences = email.references && (Array.isArray(email.references) ? email.references.length > 0 : true)
+        if (email.inReplyTo || hasReferences) {
+          for (const ticket of activeTickets) {
+            const messageIds = ticket.messages.map(m => m.externalId)
+            
+            if (email.inReplyTo && messageIds.includes(email.inReplyTo)) {
+              matchedTicket = ticket
+              console.log(`✅ Matched by In-Reply-To to ticket ${ticket.id.slice(0,8)}`)
+              break
+            }
+            
+            if (email.references) {
+              const refs = Array.isArray(email.references) ? email.references : [email.references]
+              const hasMatch = refs.some((ref: string) => messageIds.includes(ref))
+              if (hasMatch) {
                 matchedTicket = ticket
+                console.log(`✅ Matched by References to ticket ${ticket.id.slice(0,8)}`)
                 break
               }
             }
           }
+        }
+        
+        // Strategy 2: Match by customer email + subject
+        if (!matchedTicket) {
+          const customerTickets = activeTickets.filter(t => 
+            t.customerEmail?.toLowerCase() === senderEmail
+          )
           
-          // If no match found, check if this is a brand new ticket or a reply
-          if (!matchedTicket && customerTickets.length > 0) {
-            // Check if email is a reply (has In-Reply-To or References headers)
-            const isReply = email.inReplyTo || (email.references && email.references.length > 0)
+          if (customerTickets.length > 0 && email.subject) {
+            const normalizedEmailSubject = this.normalizeSubject(email.subject)
             
-            console.log(`   Email headers: In-Reply-To="${email.inReplyTo || 'none'}", References=${email.references?.length || 0}`)
-            
-            if (isReply) {
-              // It's a reply but we couldn't match it - use most recent ticket
-              matchedTicket = customerTickets[0]
-              console.log(`⚠️  Reply without subject match, using most recent ticket: ${matchedTicket.id.slice(0,8)}`)
-              await this.processTicketReply(email, matchedTicket.id)
-              processedCount++
-            } else {
-              // It's a brand new email - create a new ticket
-              console.log(`📝 New email detected (no reply headers), creating new ticket for "${email.subject}"`)
-              const newTicket = await this.createNewTicket(email, customerEmail)
-              if (newTicket) {
-                await this.processTicketReply(email, newTicket.id)
-                processedCount++
+            for (const ticket of customerTickets) {
+              if (ticket.subject) {
+                const normalizedTicketSubject = this.normalizeSubject(ticket.subject)
+                
+                if (normalizedEmailSubject === normalizedTicketSubject) {
+                  matchedTicket = ticket
+                  console.log(`✅ Matched by subject to ticket ${ticket.id.slice(0,8)}: "${normalizedTicketSubject}"`)
+                  break
+                }
               }
             }
-          } else if (matchedTicket) {
-            await this.processTicketReply(email, matchedTicket.id)
-            processedCount++
-          } else if (customerTickets.length === 0) {
-            // No existing tickets for this customer - create new ticket
-            console.log(`📝 First email from customer, creating new ticket`)
-            const newTicket = await this.createNewTicket(email, customerEmail)
-            if (newTicket) {
-              await this.processTicketReply(email, newTicket.id)
-              processedCount++
+          }
+          
+          // If still no match but customer has tickets, use most recent
+          if (!matchedTicket && customerTickets.length > 0) {
+            const isReply = email.inReplyTo || (email.references && email.references.length > 0)
+            if (isReply) {
+              matchedTicket = customerTickets[0]
+              console.log(`⚠️  Reply from known customer, using most recent ticket: ${matchedTicket.id.slice(0,8)}`)
             }
           }
         }
+        
+        // If no match found, create new ticket
+        if (!matchedTicket) {
+          console.log(`📝 Creating new ticket for email from ${senderEmail}`)
+          const newTicket = await this.createNewTicket(email, senderEmail)
+          if (newTicket) {
+            matchedTicket = newTicket
+          }
+        }
+        
+        // Add message to ticket
+        if (matchedTicket) {
+          await this.processTicketReply(email, matchedTicket.id)
+          processedCount++
+        }
       }
 
-      console.log(`✅ Processed ${processedCount} ticket replies`)
+      console.log(`✅ Processed ${processedCount} emails`)
       return processedCount
       
     } catch (error) {
@@ -191,9 +201,9 @@ export class TicketEmailReceiver {
   }
 
   /**
-   * Fetch emails from a specific sender sent to your organization email
+   * Fetch ALL emails sent TO the support email address (in the last 7 days)
    */
-  private async fetchEmailsFromSender(senderEmail: string): Promise<ParsedEmail[]> {
+  private async fetchAllIncomingEmails(): Promise<ParsedEmail[]> {
     return new Promise((resolve, reject) => {
       this.imap.openBox("INBOX", false, (err, box) => {
         if (err) {
@@ -201,26 +211,25 @@ export class TicketEmailReceiver {
           return
         }
 
-        // Search for emails FROM customer TO your org email in the last 7 days
-        // Don't use UNSEEN filter because we track processed emails in DB
+        // Search for ALL emails TO your support email in the last 7 days
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
         const sinceDate = sevenDaysAgo.toISOString().split('T')[0].replace(/-/g, '-')
         
-        // Search for emails FROM the customer AND TO your organization email
-        this.imap.search([["FROM", senderEmail], ["TO", this.config.username], ["SINCE", sinceDate]], (err, results) => {
+        // Search for ALL emails TO your organization email (support inbox)
+        this.imap.search([["TO", this.config.username], ["SINCE", sinceDate]], (err, results) => {
           if (err) {
             reject(err)
             return
           }
 
           if (!results || results.length === 0) {
-            console.log(`📭 No emails found from ${senderEmail} in the last 7 days`)
+            console.log(`📭 No emails found to ${this.config.username} in the last 7 days`)
             resolve([])
             return
           }
 
-          console.log(`📨 Found ${results.length} emails from ${senderEmail} (last 7 days)`)
+          console.log(`📨 Found ${results.length} emails to ${this.config.username} (last 7 days)`)
 
           const fetch = this.imap.fetch(results, { bodies: "", markSeen: false })
           const emails: ParsedEmail[] = []
@@ -431,6 +440,12 @@ export class TicketEmailReceiver {
     const from = this.extractEmail(parsed.from)
     const to = this.extractEmails(parsed.to)
 
+    // Ensure references is always an array
+    let references: string[] | undefined = undefined
+    if (parsed.references) {
+      references = Array.isArray(parsed.references) ? parsed.references : [parsed.references]
+    }
+
     return {
       messageId: parsed.messageId || `generated-${Date.now()}`,
       from,
@@ -439,7 +454,7 @@ export class TicketEmailReceiver {
       text: parsed.text,
       html: parsed.html ? String(parsed.html) : undefined,
       inReplyTo: parsed.inReplyTo,
-      references: parsed.references,
+      references,
       date: parsed.date || new Date(),
     }
   }
@@ -496,3 +511,4 @@ export async function checkTicketEmailReplies(
     throw error
   }
 }
+// Force recompile
