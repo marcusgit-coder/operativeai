@@ -40,16 +40,19 @@ export default function InvoiceMetrics({ data }: InvoiceMetricsProps) {
         </CardHeader>
         <CardContent className="pb-2">
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={data.monthlyVolume}>
+            <LineChart data={data.monthlyVolume} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
               <XAxis 
                 dataKey="month" 
                 tick={{ fontSize: 10, fill: 'currentColor' }}
                 stroke="currentColor"
+                axisLine={false}
               />
               <YAxis 
                 tick={{ fontSize: 10, fill: 'currentColor' }}
                 stroke="currentColor"
+                axisLine={false}
+                width={25}
               />
               <Tooltip content={<CustomTooltip />} />
               <Line 
@@ -74,16 +77,19 @@ export default function InvoiceMetrics({ data }: InvoiceMetricsProps) {
         </CardHeader>
         <CardContent className="pb-2">
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={data.monthlyRevenue}>
+            <LineChart data={data.monthlyRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
               <XAxis 
                 dataKey="month" 
                 tick={{ fontSize: 10, fill: 'currentColor' }}
                 stroke="currentColor"
+                axisLine={false}
               />
               <YAxis 
                 tick={{ fontSize: 10, fill: 'currentColor' }}
                 stroke="currentColor"
+                axisLine={false}
+                width={25}
                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
               />
               <Tooltip 
@@ -112,16 +118,19 @@ export default function InvoiceMetrics({ data }: InvoiceMetricsProps) {
         </CardHeader>
         <CardContent className="pb-2">
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={data.processingTime}>
+            <LineChart data={data.processingTime} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
               <XAxis 
                 dataKey="month" 
                 tick={{ fontSize: 10, fill: 'currentColor' }}
                 stroke="currentColor"
+                axisLine={false}
               />
               <YAxis 
                 tick={{ fontSize: 10, fill: 'currentColor' }}
                 stroke="currentColor"
+                axisLine={false}
+                width={25}
               />
               <Tooltip 
                 content={<CustomTooltip />}
@@ -149,16 +158,19 @@ export default function InvoiceMetrics({ data }: InvoiceMetricsProps) {
         </CardHeader>
         <CardContent className="pb-2">
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={data.confidenceScore}>
+            <LineChart data={data.confidenceScore} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
               <XAxis 
                 dataKey="month" 
                 tick={{ fontSize: 10, fill: 'currentColor' }}
                 stroke="currentColor"
+                axisLine={false}
               />
               <YAxis 
                 tick={{ fontSize: 10, fill: 'currentColor' }}
                 stroke="currentColor"
+                axisLine={false}
+                width={25}
                 domain={[0, 100]}
               />
               <Tooltip 
