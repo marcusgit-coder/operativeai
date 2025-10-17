@@ -21,6 +21,13 @@ export async function POST(
     const body = await request.json()
     const { content } = body
 
+    console.log("📧 =".repeat(40))
+    console.log("📧 Received message send request")
+    console.log("📧 Conversation ID:", params.id)
+    console.log("📧 User:", session.user.email)
+    console.log("📧 Organization:", session.user.organizationId)
+    console.log("📧 Content length:", content?.length)
+
     if (!content) {
       return NextResponse.json({ error: "Content is required" }, { status: 400 })
     }
@@ -34,8 +41,14 @@ export async function POST(
     })
 
     if (!ticket) {
+      console.error("❌ Ticket not found:", params.id)
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 })
     }
+
+    console.log("✅ Ticket found:")
+    console.log("   - Channel:", ticket.channel)
+    console.log("   - Customer Email:", ticket.customerEmail)
+    console.log("   - Subject:", ticket.subject)
 
     // Create message with PENDING status initially
     const message = await db.message.create({

@@ -75,12 +75,23 @@ export async function sendEmail(
   organizationId: string,
   params: SendEmailParams
 ): Promise<string> {
+  console.log("📧 sendEmail() called")
+  console.log("📧 Organization ID:", organizationId)
+  console.log("📧 To:", params.to)
+  console.log("📧 Subject:", params.subject)
+
   // Get email configuration
   const config = await getEmailConfig(organizationId)
 
   if (!config) {
+    console.error("❌ Email integration not configured")
     throw new Error("Email integration not configured or not enabled")
   }
+
+  console.log("✅ Email config found:")
+  console.log("   - SMTP Host:", config.smtpHost)
+  console.log("   - SMTP Port:", config.smtpPort)
+  console.log("   - From:", config.fromEmail)
 
   // Create transporter
   const transporter = createEmailTransporter(config)
@@ -94,6 +105,8 @@ export async function sendEmail(
     headers["References"] = params.references.join(" ")
   }
 
+  console.log("📤 Sending email via SMTP...")
+
   // Send email
   const info = await transporter.sendMail({
     from: config.fromName 
@@ -106,6 +119,9 @@ export async function sendEmail(
     attachments: params.attachments,
     headers,
   })
+
+  console.log("✅ Email sent successfully!")
+  console.log("📧 Message ID:", info.messageId)
 
   // Return the message ID
   return info.messageId
