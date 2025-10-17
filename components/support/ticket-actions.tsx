@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, XCircle, AlertCircle } from "lucide-react"
+import { CheckCircle, Archive, AlertCircle } from "lucide-react"
 
 interface TicketActionsProps {
   ticketId: string
@@ -65,8 +65,8 @@ export default function TicketActions({ ticketId, currentStatus }: TicketActions
           variant="outline"
           className="flex items-center gap-2"
         >
-          <XCircle className="h-4 w-4" />
-          Close
+          <Archive className="h-4 w-4" />
+          Archive
         </Button>
       )}
     </div>

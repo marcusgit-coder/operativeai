@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { notifyTicketStatusChange } from "@/lib/notifications/triggers"
 
 // PATCH - Update ticket status
 export async function PATCH(
@@ -34,6 +35,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 })
     }
 
+    // Store old status for notification
+    const oldStatus = ticket.status
+
     // Update ticket
     const updatedTicket = await db.conversation.update({
       where: { id: params.id },
@@ -42,6 +46,9 @@ export async function PATCH(
         closedAt: status.toUpperCase() === "CLOSED" ? new Date() : null,
       },
     })
+
+    // Trigger notification for status change
+    await notifyTicketStatusChange(updatedTicket, oldStatus)
 
     return NextResponse.json({ success: true, ticket: updatedTicket })
   } catch (error) {

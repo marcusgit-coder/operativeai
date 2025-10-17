@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { notifyNewTicket } from "@/lib/notifications/triggers"
 
 // GET - List all tickets for organization
 export async function GET(request: NextRequest) {
@@ -78,6 +79,17 @@ export async function POST(request: NextRequest) {
       include: {
         messages: true,
       },
+    })
+
+    // Send notification to admins
+    await notifyNewTicket({
+      id: conversation.id,
+      organizationId: conversation.organizationId,
+      customerName: conversation.customerName,
+      customerEmail: conversation.customerEmail,
+      subject: conversation.subject,
+      priority: "NORMAL", // Default priority
+      channel: conversation.channel,
     })
 
     return NextResponse.json(

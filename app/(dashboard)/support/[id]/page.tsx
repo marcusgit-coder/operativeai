@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Mail, User, Calendar, MessageCircle } from "lucide-react"
 import Link from "next/link"
-import { formatDistanceToNow } from "date-fns"
+import { TimeAgo } from "@/components/ui/time-ago"
 import TicketMessages from "@/components/support/ticket-messages"
 import TicketActions from "@/components/support/ticket-actions"
+import ManualEmailCheck from "@/components/support/manual-email-check"
 
 async function getTicket(ticketId: string, organizationId: string) {
   const conversation = await db.conversation.findFirst({
@@ -77,7 +78,10 @@ export default async function TicketDetailPage({
             </p>
           </div>
         </div>
-        <TicketActions ticketId={ticket.id} currentStatus={ticket.status} />
+        <div className="flex items-center gap-3">
+          {ticket.channel === "EMAIL" && <ManualEmailCheck ticketId={ticket.id} />}
+          <TicketActions ticketId={ticket.id} currentStatus={ticket.status} />
+        </div>
       </div>
 
       {/* Ticket Info Card */}
@@ -122,13 +126,13 @@ export default async function TicketDetailPage({
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Created</p>
               <p className="text-sm font-medium dark:text-gray-100 flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
+                <TimeAgo date={ticket.createdAt} />
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Updated</p>
               <p className="text-sm font-medium dark:text-gray-100">
-                {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true })}
+                <TimeAgo date={ticket.updatedAt} />
               </p>
             </div>
             <div>

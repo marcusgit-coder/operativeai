@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CheckCircle, Loader, AlertCircle } from "lucide-react"
+import { CheckCircle, Loader, AlertCircle, Mail, Inbox, Play, Square } from "lucide-react"
 import { EMAIL_PROVIDERS } from "@/lib/email-providers"
 
 interface EmailIntegrationFormProps {
@@ -18,17 +18,39 @@ export default function EmailIntegrationForm({ organizationId, existingConfig }:
   const [loading, setLoading] = useState(false)
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [pollerStatus, setPollerStatus] = useState<any>(null)
+  const [pollerLoading, setPollerLoading] = useState(false)
 
   const [selectedProvider, setSelectedProvider] = useState(existingConfig?.provider || "GMAIL")
   const [formData, setFormData] = useState({
     smtpHost: existingConfig?.smtpHost || EMAIL_PROVIDERS.GMAIL.smtpHost,
     smtpPort: existingConfig?.smtpPort || EMAIL_PROVIDERS.GMAIL.smtpPort,
     secure: existingConfig?.secure ?? EMAIL_PROVIDERS.GMAIL.secure,
+    imapHost: existingConfig?.imapHost || EMAIL_PROVIDERS.GMAIL.imapHost,
+    imapPort: existingConfig?.imapPort || EMAIL_PROVIDERS.GMAIL.imapPort,
+    imapSecure: existingConfig?.imapSecure ?? EMAIL_PROVIDERS.GMAIL.imapSecure,
     username: existingConfig?.username || "",
     password: "",
     fromEmail: existingConfig?.fromEmail || "",
     fromName: existingConfig?.fromName || "",
   })
+
+  // Fetch poller status on mount
+  useEffect(() => {
+    fetchPollerStatus()
+  }, [])
+
+  const fetchPollerStatus = async () => {
+    try {
+      const response = await fetch("/api/email/poller")
+      if (response.ok) {
+        const data = await response.json()
+        setPollerStatus(data.status)
+      }
+    } catch (error) {
+      console.error("Failed to fetch poller status:", error)
+    }
+  }
 
   const handleProviderChange = (provider: string) => {
     setSelectedProvider(provider)
@@ -38,6 +60,9 @@ export default function EmailIntegrationForm({ organizationId, existingConfig }:
       smtpHost: providerConfig.smtpHost,
       smtpPort: providerConfig.smtpPort,
       secure: providerConfig.secure,
+      imapHost: providerConfig.imapHost,
+      imapPort: providerConfig.imapPort,
+      imapSecure: providerConfig.imapSecure,
     })
   }
 
@@ -75,6 +100,26 @@ export default function EmailIntegrationForm({ organizationId, existingConfig }:
     }
   }
 
+  const handleTogglePoller = async () => {
+    setPollerLoading(true)
+    try {
+      const action = pollerStatus?.isRunning ? "stop" : "start"
+      const response = await fetch("/api/email/poller", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+
+      if (response.ok) {
+        await fetchPollerStatus()
+      }
+    } catch (error) {
+      console.error("Failed to toggle poller:", error)
+    } finally {
+      setPollerLoading(false)
+    }
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -105,6 +150,50 @@ export default function EmailIntegrationForm({ organizationId, existingConfig }:
 
   return (
     <form onSubmit={handleSave} className="space-y-6">
+      {/* Email Poller Status */}
+      {existingConfig && (
+        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Inbox className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="font-semibold text-gray-900 dark:text-white">Email Poller</h3>
+            </div>
+            <Button
+              type="button"
+              onClick={handleTogglePoller}
+              disabled={pollerLoading}
+              size="sm"
+              variant="outline"
+              className={pollerStatus?.isRunning ? "border-red-500 text-red-600 hover:bg-red-50" : "border-green-500 text-green-600 hover:bg-green-50"}
+            >
+              {pollerLoading ? (
+                <Loader className="h-4 w-4 mr-2 animate-spin" />
+              ) : pollerStatus?.isRunning ? (
+                <>
+                  <Square className="h-4 w-4 mr-2" />
+                  Stop Poller
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Start Poller
+                </>
+              )}
+            </Button>
+          </div>
+          <div className="space-y-1 text-sm">
+            <p className="text-gray-700 dark:text-gray-300">
+              Status: <span className={`font-semibold ${pollerStatus?.isRunning ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400"}`}>
+                {pollerStatus?.isRunning ? "Running" : "Stopped"}
+              </span>
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Checks for new emails every {pollerStatus?.pollIntervalSeconds || 60} seconds
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Provider Selection */}
       <div className="space-y-2">
         <Label htmlFor="provider" className="dark:text-gray-300">Email Provider</Label>
@@ -164,6 +253,61 @@ export default function EmailIntegrationForm({ organizationId, existingConfig }:
             <option value="false">TLS (587)</option>
             <option value="true">SSL (465)</option>
           </select>
+        </div>
+      </div>
+
+      {/* IMAP Settings Section */}
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2 mb-4">
+          <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Incoming Mail (IMAP) Settings
+          </h3>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Configure IMAP to receive customer email replies automatically
+        </p>
+
+        {/* IMAP Host */}
+        <div className="space-y-2 mb-4">
+          <Label htmlFor="imapHost" className="dark:text-gray-300">IMAP Host</Label>
+          <Input
+            id="imapHost"
+            value={formData.imapHost}
+            onChange={(e) => setFormData({ ...formData, imapHost: e.target.value })}
+            placeholder="imap.gmail.com"
+            required
+            className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+          />
+        </div>
+
+        {/* IMAP Port and Security */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="imapPort" className="dark:text-gray-300">IMAP Port</Label>
+            <Input
+              id="imapPort"
+              type="number"
+              value={formData.imapPort}
+              onChange={(e) => setFormData({ ...formData, imapPort: parseInt(e.target.value) })}
+              placeholder="993"
+              required
+              className="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="imapSecure" className="dark:text-gray-300">IMAP Security</Label>
+            <select
+              id="imapSecure"
+              value={formData.imapSecure ? "true" : "false"}
+              onChange={(e) => setFormData({ ...formData, imapSecure: e.target.value === "true" })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="true">SSL/TLS (993)</option>
+              <option value="false">STARTTLS (143)</option>
+            </select>
+          </div>
         </div>
       </div>
 

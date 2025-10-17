@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Message } from "@prisma/client"
-import { formatDistanceToNow } from "date-fns"
+import { TimeAgo } from "@/components/ui/time-ago"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Bot, User, Send } from "lucide-react"
@@ -86,7 +86,7 @@ export default function TicketMessages({ messages, ticketId }: TicketMessagesPro
                     )}
                   </div>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatDistanceToNow(new Date(message.sentAt), { addSuffix: true })}
+                    <TimeAgo date={message.sentAt} />
                   </span>
                 </div>
                 <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">

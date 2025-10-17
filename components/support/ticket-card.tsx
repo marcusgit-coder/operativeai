@@ -1,7 +1,7 @@
 "use client"
 
 import { Conversation, Message } from "@prisma/client"
-import { formatDistanceToNow } from "date-fns"
+import { TimeAgo } from "@/components/ui/time-ago"
 import Link from "next/link"
 import { Mail, User, Calendar, MessageCircle, AlertCircle } from "lucide-react"
 
@@ -102,7 +102,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-500 flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {formatDistanceToNow(new Date(lastMessage.sentAt), { addSuffix: true })}
+                <TimeAgo date={lastMessage.sentAt} />
               </span>
             </div>
           </div>

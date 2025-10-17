@@ -12,7 +12,7 @@ import {
   Download,
   Eye
 } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { TimeAgo } from "@/components/ui/time-ago"
 
 interface Invoice {
   id: string
@@ -253,9 +253,7 @@ export default function InvoicesPage() {
                         {getStatusBadge(invoice.status, invoice.needsReview)}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">
-                        {formatDistanceToNow(new Date(invoice.createdAt), {
-                          addSuffix: true,
-                        })}
+                        <TimeAgo date={invoice.createdAt} />
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end space-x-2">

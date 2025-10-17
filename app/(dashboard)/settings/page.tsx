@@ -173,12 +173,24 @@ export default function SettingsPage() {
 
         {/* Notifications */}
         <Card className="p-6 dark:bg-gray-900 dark:border-gray-800">
-          <div className="flex items-center gap-3 mb-6">
-            <Bell className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            <h2 className="text-xl font-semibold dark:text-gray-100">Notifications</h2>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Bell className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <h2 className="text-xl font-semibold dark:text-gray-100">Notifications</h2>
+            </div>
+            <Link href="/settings/notifications">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                Manage
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
 
           <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Configure your notification preferences including channels, types, and quiet hours.
+            </p>
+
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium dark:text-gray-200">Escalation Notifications</p>

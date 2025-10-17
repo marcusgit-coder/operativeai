@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { sendEmail, formatEmailHtml } from "@/lib/channels/email-service"
+import { notifyTicketReply } from "@/lib/notifications/triggers"
 
 export const runtime = 'nodejs'
 
@@ -73,6 +74,15 @@ export async function POST(
         unreadCount: 0, // Admin replied, reset unread
       },
     })
+
+    // Trigger notification for ticket reply (notify other team members)
+    // Note: Using type assertion due to Prisma client type mismatch
+    await notifyTicketReply({
+      id: message.id,
+      content: message.content,
+      sender: message.sender,
+      direction: "OUTBOUND",
+    }, ticket)
 
     // Send email if channel is EMAIL
     if (ticket.channel === "EMAIL" && ticket.customerEmail) {

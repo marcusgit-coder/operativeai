@@ -4,9 +4,11 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, MessageSquare, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { Plus, MessageSquare, CheckCircle, Clock, AlertCircle, Archive } from "lucide-react"
 import Link from "next/link"
 import TicketList from "@/components/support/ticket-list"
+import ArchivedTickets from "@/components/support/archived-tickets"
+import TicketTabs from "@/components/support/ticket-tabs"
 
 async function getSupportTickets(organizationId: string) {
   const conversations = await db.conversation.findMany({
@@ -35,12 +37,32 @@ async function getTicketStats(organizationId: string) {
 
   const stats = {
     total: conversations.length,
-    active: conversations.filter((c) => c.status === "ACTIVE").length,
-    resolved: conversations.filter((c) => c.status === "RESOLVED").length,
-    needsAttention: conversations.filter((c) => c.assignedToHuman && c.status === "ACTIVE").length,
+    active: conversations.filter((c: any) => c.status === "ACTIVE").length,
+    resolved: conversations.filter((c: any) => c.status === "RESOLVED").length,
+    archived: conversations.filter((c: any) => c.status === "CLOSED").length,
+    needsAttention: conversations.filter((c: any) => c.assignedToHuman && c.status === "ACTIVE").length,
   }
 
   return stats
+}
+
+async function getArchivedTickets(organizationId: string) {
+  const conversations = await db.conversation.findMany({
+    where: {
+      organizationId,
+      status: "CLOSED",
+    },
+    include: {
+      messages: {
+        select: { id: true },
+      },
+    },
+    orderBy: {
+      closedAt: "desc",
+    },
+  })
+
+  return conversations
 }
 
 export default async function SupportPage() {
@@ -52,6 +74,7 @@ export default async function SupportPage() {
 
   const tickets = await getSupportTickets(session.user.organizationId)
   const stats = await getTicketStats(session.user.organizationId)
+  const archivedTickets = await getArchivedTickets(session.user.organizationId)
 
   return (
     <div className="space-y-6">
@@ -72,7 +95,7 @@ export default async function SupportPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card className="dark:bg-gray-900 dark:border-gray-800">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium dark:text-gray-400">
@@ -134,21 +157,31 @@ export default async function SupportPage() {
               {stats.resolved}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Completed tickets
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="dark:bg-gray-900 dark:border-gray-800">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium dark:text-gray-400">
+              Archived
+            </CardTitle>
+            <Archive className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
+              {stats.archived}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Closed tickets
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Ticket List */}
-      <Card className="dark:bg-gray-900 dark:border-gray-800">
-        <CardHeader>
-          <CardTitle className="dark:text-gray-100">All Tickets</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TicketList tickets={tickets} />
-        </CardContent>
-      </Card>
+      {/* Ticket List with Tabs */}
+      <TicketTabs allTickets={tickets} archivedTickets={archivedTickets} />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatDistanceToNow } from "date-fns"
+import { TimeAgo } from "@/components/ui/time-ago"
 import Link from "next/link"
 
 interface RecentActivityProps {
@@ -91,9 +91,7 @@ export default async function RecentActivity({ organizationId }: RecentActivityP
                       {getActivityMessage(activity)}
                     </p>
                     <p className="text-gray-500 dark:text-gray-400 text-xs">
-                      {formatDistanceToNow(new Date(activity.createdAt), {
-                        addSuffix: true,
-                      })}
+                      <TimeAgo date={activity.createdAt} />
                     </p>
                   </div>
                 </>

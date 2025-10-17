@@ -22,6 +22,9 @@ model User {
   organization  Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?
   
+  notifications Notification[]
+  notificationPreference NotificationPreference?
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -38,6 +41,7 @@ model Organization {
   knowledgeBase KnowledgeBase[]
   settings      OrganizationSettings?
   integrations  ChannelIntegration[]
+  notifications Notification[]
   
   onboardingCompleted Boolean @default(false)
   onboardingStep      Int     @default(0)
@@ -224,6 +228,68 @@ model ActivityLog {
   metadata          String?
   
   createdAt         DateTime  @default(now())
+}
+
+// Notifications
+model Notification {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Notification content
+  type            String    // NEW_TICKET, TICKET_REPLY, etc.
+  title           String
+  message         String
+  
+  // Related entities
+  relatedType     String?   // "ticket", "invoice", "message", etc.
+  relatedId       String?   // ID of the related entity
+  relatedUrl      String?   // Direct link to the related item
+  
+  // Metadata
+  priority        String    @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  category        String?   // "support", "billing", "system", etc.
+  data            String?   // JSON string for additional structured data
+  
+  // Status
+  isRead          Boolean   @default(false)
+  readAt          DateTime?
+  isArchived      Boolean   @default(false)
+  archivedAt      DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId, isRead])
+  @@index([organizationId, createdAt])
+  @@index([type, isRead])
+}
+
+model NotificationPreference {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Channel preferences
+  emailEnabled    Boolean   @default(true)
+  pushEnabled     Boolean   @default(true)
+  inAppEnabled    Boolean   @default(true)
+  
+  // Notification type preferences
+  newTicket       Boolean   @default(true)
+  ticketReply     Boolean   @default(true)
+  ticketStatus    Boolean   @default(true)
+  invoiceUpdates  Boolean   @default(true)
+  systemAlerts    Boolean   @default(true)
+  
+  // Quiet hours (24-hour format)
+  quietHoursStart Int?      // e.g., 22 for 10 PM
+  quietHoursEnd   Int?      // e.g., 8 for 8 AM
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 
