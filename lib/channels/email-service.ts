@@ -131,12 +131,24 @@ export async function sendEmail(
  * Test email connection
  */
 export async function testEmailConnection(config: EmailConfig): Promise<boolean> {
+  // Skip validation in development mode if SKIP_EMAIL_VALIDATION is set
+  if (process.env.SKIP_EMAIL_VALIDATION === 'true') {
+    console.log("⚠️  Skipping email validation (SKIP_EMAIL_VALIDATION=true)")
+    return true
+  }
+
   try {
+    console.log("🔍 Testing email connection...")
+    console.log("   - Host:", config.smtpHost)
+    console.log("   - Port:", config.smtpPort)
+    console.log("   - User:", config.username)
+    
     const transporter = createEmailTransporter(config)
     await transporter.verify()
+    console.log("✅ Email connection test successful")
     return true
   } catch (error) {
-    console.error("Email connection test failed:", error)
+    console.error("❌ Email connection test failed:", error)
     return false
   }
 }
