@@ -98,4 +98,56 @@
   .dark .scrollbar-thin {
     scrollbar-color: rgb(55 65 81) transparent;
   }
+
+  /* Date Range Picker Styles */
+  .date-range-picker .rdp {
+    --rdp-cell-size: 40px;
+    --rdp-accent-color: rgb(59 130 246);
+    --rdp-background-color: rgb(239 246 255);
+  }
+
+  .dark .date-range-picker .rdp {
+    --rdp-accent-color: rgb(59 130 246);
+    --rdp-background-color: rgb(30 58 138 / 0.2);
+  }
+
+  .date-range-picker .rdp-months {
+    @apply gap-4;
+  }
+
+  .date-range-picker .rdp-month {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  .date-range-picker .rdp-head_cell {
+    @apply text-gray-600 dark:text-gray-400 font-medium;
+  }
+
+  .date-range-picker .rdp-cell {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  .date-range-picker .rdp-day {
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md;
+  }
+
+  .date-range-picker .rdp-day_selected {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+
+  .date-range-picker .rdp-day_today {
+    @apply font-bold text-blue-600 dark:text-blue-400;
+  }
+
+  .date-range-picker .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  .date-range-picker .rdp-nav_button {
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md;
+  }
+
+  .date-range-picker .rdp-caption_label {
+    @apply text-gray-900 dark:text-gray-100 font-semibold;
+  }
 }

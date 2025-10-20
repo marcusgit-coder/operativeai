@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, MessageSquare, CheckCircle, Clock, AlertCircle, Archive } from "lucide-react"
 import Link from "next/link"
-import TicketList from "@/components/support/ticket-list"
-import ArchivedTickets from "@/components/support/archived-tickets"
-import TicketTabs from "@/components/support/ticket-tabs"
+import { SupportTicketsClient } from "@/components/support/support-tickets-client"
+import { filterTickets, getFilterStats } from "@/lib/filters/ticket-filter-service"
+import { DEFAULT_FILTERS } from "@/types/filters"
 
 async function getSupportTickets(organizationId: string) {
   const conversations = await db.conversation.findMany({
@@ -72,9 +72,14 @@ export default async function SupportPage() {
     redirect("/login")
   }
 
-  const tickets = await getSupportTickets(session.user.organizationId)
+  // Fetch initial tickets with default filters
+  const initialData = await filterTickets(
+    session.user.organizationId,
+    DEFAULT_FILTERS,
+    { page: 1, limit: 20 }
+  )
+  
   const stats = await getTicketStats(session.user.organizationId)
-  const archivedTickets = await getArchivedTickets(session.user.organizationId)
 
   return (
     <div className="space-y-6">
@@ -180,8 +185,15 @@ export default async function SupportPage() {
         </Card>
       </div>
 
-      {/* Ticket List with Tabs */}
-      <TicketTabs allTickets={tickets} archivedTickets={archivedTickets} />
+      {/* Ticket List with Filters */}
+      <Card className="dark:bg-gray-900 dark:border-gray-800">
+        <CardContent className="pt-6">
+          <SupportTicketsClient
+            initialTickets={initialData.items}
+            initialTotal={initialData.total}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }

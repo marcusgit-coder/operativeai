@@ -7,13 +7,15 @@ import { Mail, User, Calendar, MessageCircle, AlertCircle } from "lucide-react"
 
 interface TicketCardProps {
   ticket: Conversation & {
-    messages: Message[]
+    _count?: {
+      messages: number
+    }
+    messages?: Message[]
   }
 }
 
 export default function TicketCard({ ticket }: TicketCardProps) {
-  const lastMessage = ticket.messages[0]
-  const messageCount = ticket.messages.length
+  const messageCount = ticket._count?.messages ?? ticket.messages?.length ?? 0
 
   // Status badge styling
   const getStatusColor = (status: string) => {
@@ -86,27 +88,8 @@ export default function TicketCard({ ticket }: TicketCardProps) {
           </div>
         </div>
 
-        {lastMessage && (
-          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-              {lastMessage.content}
-            </p>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-gray-500 dark:text-gray-500">
-                From: {lastMessage.sender}
-                {lastMessage.isAiGenerated && (
-                  <span className="ml-2 px-1.5 py-0.5 rounded text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-                    AI
-                  </span>
-                )}
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-500 flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                <TimeAgo date={lastMessage.sentAt} />
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Last message preview - would require including messages in query */}
+        {/* TODO: Add last message preview if needed */}
       </div>
     </Link>
   )

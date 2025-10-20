@@ -24,6 +24,9 @@ model User {
   
   notifications Notification[]
   notificationPreference NotificationPreference?
+  assignedConversations Conversation[]
+  savedFilters  SavedFilter[]
+  bulkActionLogs BulkActionLog[] @relation("BulkActionLogs")
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -42,6 +45,8 @@ model Organization {
   settings      OrganizationSettings?
   integrations  ChannelIntegration[]
   notifications Notification[]
+  savedFilters  SavedFilter[]
+  bulkActionLogs BulkActionLog[] @relation("BulkActionLogs")
   
   onboardingCompleted Boolean @default(false)
   onboardingStep      Int     @default(0)
@@ -127,12 +132,19 @@ model Conversation {
   unreadCount       Int       @default(0)
   
   messages          Message[]
+  assignedUserId    String?
+  assignedUser      User?     @relation(fields: [assignedUserId], references: [id])
   
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   closedAt          DateTime?
   
   @@index([organizationId, status])
+  @@index([organizationId, status, priority])
+  @@index([organizationId, channel])
+  @@index([organizationId, assignedUserId])
+  @@index([organizationId, lastMessageAt])
+  @@index([organizationId, createdAt])
   @@index([customerEmail])
   @@index([externalId])
 }
@@ -267,6 +279,27 @@ model Notification {
   @@index([type, isRead])
 }
 
+model BulkActionLog {
+  id             String    @id @default(cuid())
+  userId         String
+  organizationId String
+  action         String    // status_change, assign, tag, archive, etc.
+  affectedCount  Int
+  criteria       String    // Filter criteria used (JSON)
+  status         String    // pending, completed, failed
+  error          String?
+  createdAt      DateTime  @default(now())
+  completedAt    DateTime?
+  
+  user           User         @relation("BulkActionLogs", fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation("BulkActionLogs", fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([status])
+}
+
 model NotificationPreference {
   id              String    @id @default(cuid())
   userId          String    @unique
@@ -290,6 +323,36 @@ model NotificationPreference {
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+// Saved Filters for Support Tickets
+model SavedFilter {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Filter details
+  name            String    // User-friendly name for the filter
+  description     String?   // Optional description
+  filters         String    // JSON string of TicketFilters
+  
+  // Metadata
+  isDefault       Boolean   @default(false) // Auto-apply on page load
+  isShared        Boolean   @default(false) // Shared with organization
+  isPinned        Boolean   @default(false) // Show at top of list
+  
+  // Usage tracking
+  usageCount      Int       @default(0)
+  lastUsedAt      DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId, organizationId])
+  @@index([organizationId, isShared])
+  @@index([userId, isDefault])
 }
 
 

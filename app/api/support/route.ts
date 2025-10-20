@@ -3,8 +3,10 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { notifyNewTicket } from "@/lib/notifications/triggers"
+import { filterTickets, getFilterStats } from "@/lib/filters/ticket-filter-service"
+import { TicketFilters, DEFAULT_PAGINATION } from "@/types/filters"
 
-// GET - List all tickets for organization
+// GET - List all tickets for organization with filters
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -13,22 +15,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const conversations = await db.conversation.findMany({
-      where: {
-        organizationId: session.user.organizationId,
-      },
-      include: {
-        messages: {
-          orderBy: { sentAt: "desc" },
-          take: 1,
-        },
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-    })
+    const { searchParams } = new URL(request.url)
+    
+    // Parse filters from query params
+    const filtersParam = searchParams.get('filters')
+    let filters: TicketFilters = {}
+    
+    if (filtersParam) {
+      try {
+        filters = JSON.parse(decodeURIComponent(filtersParam))
+      } catch (e) {
+        console.error('Error parsing filters:', e)
+      }
+    }
+    
+    // Parse pagination
+    const page = parseInt(searchParams.get('page') || '1', 10)
+    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    
+    // Get filter stats if requested
+    const includeStats = searchParams.get('includeStats') === 'true'
+    
+    // Use filter service
+    const result = await filterTickets(
+      session.user.organizationId,
+      filters,
+      { page, limit }
+    )
+    
+    // Get filter statistics for UI
+    let stats = null
+    if (includeStats) {
+      stats = await getFilterStats(session.user.organizationId)
+    }
 
-    return NextResponse.json({ conversations })
+    return NextResponse.json({
+      conversations: result.items,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages
+      },
+      appliedFilters: result.appliedFilters,
+      stats
+    })
   } catch (error) {
     console.error("Error fetching tickets:", error)
     return NextResponse.json(
