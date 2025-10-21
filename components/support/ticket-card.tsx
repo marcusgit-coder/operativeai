@@ -4,6 +4,9 @@ import { Conversation, Message } from "@prisma/client"
 import { TimeAgo } from "@/components/ui/time-ago"
 import Link from "next/link"
 import { Mail, User, Calendar, MessageCircle, AlertCircle } from "lucide-react"
+import { UserAssignmentDropdown } from "./user-assignment-dropdown"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface TicketCardProps {
   ticket: Conversation & {
@@ -11,11 +14,55 @@ interface TicketCardProps {
       messages: number
     }
     messages?: Message[]
+    assignedUser?: {
+      id: string
+      name: string | null
+      email: string
+    } | null
   }
+  organizationId: string
+  showAssignment?: boolean
 }
 
-export default function TicketCard({ ticket }: TicketCardProps) {
+export default function TicketCard({ ticket, organizationId, showAssignment = false }: TicketCardProps) {
   const messageCount = ticket._count?.messages ?? ticket.messages?.length ?? 0
+  const router = useRouter()
+  const [assigning, setAssigning] = useState(false)
+
+  const handleAssign = async (userId: string | null, e?: React.MouseEvent) => {
+    // Prevent navigation when clicking assignment dropdown
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+
+    setAssigning(true)
+
+    try {
+      const response = await fetch(`/api/support/${ticket.id}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ assignedUserId: userId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update assignment')
+      }
+
+      // Refresh the data
+      router.refresh()
+    } catch (error: any) {
+      console.error('Assignment error:', error)
+      if (typeof window !== 'undefined' && (window as any).toast) {
+        ;(window as any).toast.error(error.message || 'Failed to update assignment')
+      }
+    } finally {
+      setAssigning(false)
+    }
+  }
 
   // Status badge styling
   const getStatusColor = (status: string) => {
@@ -90,6 +137,22 @@ export default function TicketCard({ ticket }: TicketCardProps) {
 
         {/* Last message preview - would require including messages in query */}
         {/* TODO: Add last message preview if needed */}
+
+        {/* Assignment dropdown */}
+        {showAssignment && (
+          <div 
+            className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+            onClick={(e) => e.preventDefault()}
+          >
+            <UserAssignmentDropdown
+              currentAssignee={ticket.assignedUserId}
+              onAssign={(userId) => handleAssign(userId)}
+              organizationId={organizationId}
+              ticketId={ticket.id}
+              variant="compact"
+            />
+          </div>
+        )}
       </div>
     </Link>
   )

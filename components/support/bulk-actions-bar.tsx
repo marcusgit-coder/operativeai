@@ -13,6 +13,7 @@ import { BulkActionModal } from './bulk-action-modal'
 interface BulkActionsBarProps {
   selectedCount: number
   selectedIds: string[]
+  organizationId: string
   onClearSelection: () => void
   onActionComplete: () => void
 }
@@ -20,6 +21,7 @@ interface BulkActionsBarProps {
 export function BulkActionsBar({
   selectedCount,
   selectedIds,
+  organizationId,
   onClearSelection,
   onActionComplete,
 }: BulkActionsBarProps) {
@@ -178,6 +180,7 @@ export function BulkActionsBar({
           actionLabel={selectedAction.label}
           selectedCount={selectedCount}
           selectedIds={selectedIds}
+          organizationId={organizationId}
           onSuccess={handleActionSuccess}
           onCancel={handleModalClose}
         />

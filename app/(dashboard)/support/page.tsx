@@ -20,6 +20,13 @@ async function getSupportTickets(organizationId: string) {
         orderBy: { sentAt: "desc" },
         take: 1,
       },
+      assignedUser: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
     },
     orderBy: {
       updatedAt: "desc",
@@ -191,6 +198,8 @@ export default async function SupportPage() {
           <SupportTicketsClient
             initialTickets={initialData.items}
             initialTotal={initialData.total}
+            organizationId={session.user.organizationId}
+            showAssignment={true}
           />
         </CardContent>
       </Card>

@@ -9,17 +9,24 @@ import { Search } from "lucide-react"
 interface TicketListProps {
   tickets: (Conversation & {
     messages: Message[]
+    assignedUser?: {
+      id: string
+      name: string | null
+      email: string
+    } | null
   })[]
+  organizationId: string
+  showAssignment?: boolean
 }
 
-export default function TicketList({ tickets }: TicketListProps) {
+export default function TicketList({ tickets, organizationId, showAssignment = false }: TicketListProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
 
   // Filter tickets based on search and status
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
-      ticket.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.customerEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.subject?.toLowerCase().includes(searchQuery.toLowerCase())
 
@@ -88,7 +95,12 @@ export default function TicketList({ tickets }: TicketListProps) {
       ) : (
         <div className="space-y-3">
           {filteredTickets.map((ticket) => (
-            <TicketCard key={ticket.id} ticket={ticket} />
+            <TicketCard 
+              key={ticket.id} 
+              ticket={ticket} 
+              organizationId={organizationId}
+              showAssignment={showAssignment}
+            />
           ))}
         </div>
       )}

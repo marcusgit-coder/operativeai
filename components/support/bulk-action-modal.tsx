@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { UserAssignmentDropdown } from './user-assignment-dropdown'
 
 interface BulkActionModalProps {
   open: boolean
@@ -25,6 +26,7 @@ interface BulkActionModalProps {
   actionLabel: string
   selectedCount: number
   selectedIds: string[]
+  organizationId: string
   onSuccess: () => void
   onCancel: () => void
 }
@@ -36,6 +38,7 @@ export function BulkActionModal({
   actionLabel,
   selectedCount,
   selectedIds,
+  organizationId,
   onSuccess,
   onCancel,
 }: BulkActionModalProps) {
@@ -159,17 +162,16 @@ export function BulkActionModal({
         return (
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Assign To User ID (or leave blank to unassign)
+              Assign To
             </label>
-            <Input
-              type="text"
-              placeholder="Enter user ID or leave blank"
-              value={assignToValue}
-              onChange={(e) => setAssignToValue(e.target.value)}
-              className="w-full"
+            <UserAssignmentDropdown
+              currentAssignee={assignToValue || null}
+              onAssign={(userId) => setAssignToValue(userId || '')}
+              organizationId={organizationId}
+              variant="default"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Leave blank to unassign all selected tickets
+              Select a user to assign {selectedCount} ticket{selectedCount !== 1 ? 's' : ''}, or clear to unassign
             </p>
           </div>
         )

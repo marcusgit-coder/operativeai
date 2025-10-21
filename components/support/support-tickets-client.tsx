@@ -17,11 +17,15 @@ import { Loader2 } from 'lucide-react'
 interface SupportTicketsClientProps {
   initialTickets: any[]
   initialTotal: number
+  organizationId: string
+  showAssignment?: boolean
 }
 
 export function SupportTicketsClient({
   initialTickets,
-  initialTotal
+  initialTotal,
+  organizationId,
+  showAssignment = false
 }: SupportTicketsClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -210,7 +214,11 @@ export function SupportTicketsClient({
           </button>
         </div>
       ) : (
-        <TicketList tickets={tickets} />
+        <TicketList 
+          tickets={tickets} 
+          organizationId={organizationId}
+          showAssignment={showAssignment}
+        />
       )}
 
       {/* Pagination */}

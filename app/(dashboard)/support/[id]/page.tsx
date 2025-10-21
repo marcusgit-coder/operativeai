@@ -10,6 +10,7 @@ import { TimeAgo } from "@/components/ui/time-ago"
 import TicketMessages from "@/components/support/ticket-messages"
 import TicketActions from "@/components/support/ticket-actions"
 import ManualEmailCheck from "@/components/support/manual-email-check"
+import TicketAssignmentClient from "@/components/support/ticket-assignment-client"
 
 async function getTicket(ticketId: string, organizationId: string) {
   const conversation = await db.conversation.findFirst({
@@ -20,6 +21,13 @@ async function getTicket(ticketId: string, organizationId: string) {
     include: {
       messages: {
         orderBy: { sentAt: "asc" },
+      },
+      assignedUser: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
       },
     },
   })
@@ -102,6 +110,12 @@ export default async function TicketDetailPage({
               </span>
             </div>
             <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Priority</p>
+              <span className="text-sm font-medium dark:text-gray-100">
+                {ticket.priority}
+              </span>
+            </div>
+            <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Customer</p>
               <p className="text-sm font-medium dark:text-gray-100 flex items-center gap-1">
                 <User className="h-3 w-3" />
@@ -141,12 +155,16 @@ export default async function TicketDetailPage({
                 {ticket.messages.length}
               </p>
             </div>
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Escalated</p>
-              <p className="text-sm font-medium dark:text-gray-100">
-                {ticket.assignedToHuman ? "Yes" : "No"}
-              </p>
-            </div>
+          </div>
+
+          {/* Assignment Section */}
+          <div className="mt-6 pt-6 border-t dark:border-gray-800">
+            <TicketAssignmentClient
+              ticketId={ticket.id}
+              currentAssignee={ticket.assignedUserId}
+              assignedUser={ticket.assignedUser}
+              organizationId={session.user.organizationId}
+            />
           </div>
         </CardContent>
       </Card>

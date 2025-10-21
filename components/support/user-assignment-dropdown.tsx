@@ -151,28 +151,6 @@ export function UserAssignmentDropdown({
     return 'Heavy'
   }
 
-  if (variant === 'compact') {
-    return (
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 px-2">
-            <User className="h-4 w-4 mr-1" />
-            {currentUser ? (
-              <span className="max-w-[120px] truncate">
-                {currentUser.name || currentUser.email}
-              </span>
-            ) : (
-              <span className="text-gray-500">Unassigned</span>
-            )}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-80">
-          {renderDropdownContent()}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    )
-  }
-
   const renderDropdownContent = () => (
     <>
       <DropdownMenuLabel className="flex items-center justify-between">
@@ -207,7 +185,7 @@ export function UserAssignmentDropdown({
             {teams.map(team => (
               <button
                 key={team}
-                onClick={() => setSelectedTeam(team)}
+                onClick={() => setSelectedTeam(team || 'all')}
                 className={`px-2 py-1 text-xs rounded-md transition-colors ${
                   selectedTeam === team
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
@@ -369,6 +347,28 @@ export function UserAssignmentDropdown({
       </div>
     </>
   )
+
+  if (variant === 'compact') {
+    return (
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-8 px-2">
+            <User className="h-4 w-4 mr-1" />
+            {currentUser ? (
+              <span className="max-w-[120px] truncate">
+                {currentUser.name || currentUser.email}
+              </span>
+            ) : (
+              <span className="text-gray-500">Unassigned</span>
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-80">
+          {renderDropdownContent()}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
